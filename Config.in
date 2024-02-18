@@ -1,0 +1,65 @@
+################################################################################
+# SPDX-License-Identifier: LGPL-3.0-only
+#
+# This file is part of LogCfg.
+# Copyright (C) 2024 Grégor Boirie <gregor.boirie@free.fr>
+################################################################################
+
+config LOGCFG_ASSERT_API
+	bool "API assertion"
+	default n
+	help
+	  Build LogCfg with high-level API assertions enabled to ensure that API
+	  functions exposed by LogCfg will perform full verification of
+	  arguments consistency.
+
+config LOGCFG_ASSERT_INTERN
+	bool "Internal assertion"
+	select LOGCFG_ASSERT_API
+	default n
+	help
+	  Build LogCfg library with internal assertions enabled to check for
+	  internal LogCfg behavioral consistency.
+
+config LOGCFG_DEBUG
+	bool "Enable debug support"
+	default n
+	select LOGCFG_ASSERT_INTERN
+	help
+	  Build LogCfg with internal debugging instrumentation.
+
+
+config LOGCFG_DAEMON_LOG_SEVERITY
+	int "logcfgd logger severity"
+	range 0 7
+	default 4
+	help
+	  Logcfgd daemon log messages with severity greater than this won't be
+	  sent to logger.
+	  See syslog(3) levels for more informations about available severities.
+
+config LOGCFG_DAEMON_STDLOG_FORMAT
+	hex "logcfgd STDIO logger format"
+	range 0 0x1f
+	default 0x10
+	help
+	  Logcfgd daemon log messages sent to standard I/O logger will be logged
+	  according to this format.
+	  See eLog library's header elog_format enum for more informations about
+	  available format flags.
+
+config LOGCFG_UTEST
+	bool "Unit tests"
+	default n
+	help
+	  Build LogCfg unit testsuite.
+
+config LOGCFG_VALGRIND
+	bool "Valgrind support"
+	depends on LOGCFG_UTEST
+	default n
+	help
+	  Build LogCfg unit test suite with Valgrind support enabled.  For
+	  debugging purposes only: do not use in production.
+
+# ex: ft=kconfig:
