@@ -10,6 +10,14 @@
 
 #include "conf.h"
 
+#define LOGCFG_RULE_NAME_MAX  (16U)
+#define LOGCFG_RULE_MATCH_MAX (256U)
+
+struct logcfg_rule {
+	char   name[LOGCFG_RULE_NAME_MAX];
+	char * match;
+};
+
 struct logcfg_rule_repo {
 	unsigned int         nr;
 	struct logcfg_rule * rules;
@@ -54,14 +62,6 @@ logcfg_rule_init_repo(void)
 extern void
 logcfg_rule_fini_repo(void);
 
-#define LOGCFG_RULE_NAME_MAX  (16U)
-#define LOGCFG_RULE_MATCH_MAX (256U)
-
-struct logcfg_rule {
-	char   name[LOGCFG_RULE_NAME_MAX];
-	char * match;
-};
-
 #if defined(CONFIG_LOGCFG_ASSERT_INTERN)
 
 extern unsigned int
@@ -101,4 +101,4 @@ logcfg_rule_get_match(const struct logcfg_rule * __restrict rule)
 extern int __logcfg_nonull(1)
 logcfg_rule_load_conf(const config_setting_t * __restrict setting);
 
-#endif /* _LOGCFG_INTERN_CONFIG_H */
+#endif /* _LOGCFG_INTERN_RULE_H */

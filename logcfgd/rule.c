@@ -168,14 +168,15 @@ logcfg_rule_fini_repo(void)
 }
 
 static int
-logcfg_rule_load_conf_elem(const config_setting_t * __restrict setting)
+logcfg_rule_load_conf_elem(const config_setting_t * __restrict setting,
+                           unsigned int                        id)
 {
 	logcfg_rule_repo_assert();
 	logcfg_assert_intern(setting);
+	logcfg_assert_intern(id < logcfg_the_rule_repo.nr);
 
 	const config_setting_t * attr;
 	int                      nr;
-	int                      id;
 	const char *             name;
 	size_t                   nlen;
 	const char *             match;
@@ -189,29 +190,9 @@ logcfg_rule_load_conf_elem(const config_setting_t * __restrict setting)
 
 	nr = config_setting_length(setting);
 	logcfg_assert_intern(nr >= 0);
-	if (nr != 3) {
+	if (nr != 2) {
 		/* All rule field definitions are mandatory. */
 		logcfg_conf_err(setting, "invalid number of settings");
-		return -EINVAL;
-	}
-
-	/* Parse rule identifier */
-	attr = config_setting_get_member(setting, "id");
-	if (!attr) {
-		logcfg_conf_err(setting, "missing 'id' setting");
-		return -EINVAL;
-	}
-	if (config_setting_type(attr) != CONFIG_TYPE_INT) {
-		logcfg_conf_err(attr, "positive integer required");
-		return -EINVAL;
-	}
-	id = config_setting_get_int(attr);
-	if ((id < 0) || ((unsigned int)id >= logcfg_the_rule_repo.nr)) {
-		logcfg_conf_err(attr, "out of range integer");
-		return -EINVAL;
-	}
-	if (logcfg_rule_get_byid((unsigned int)id)->match) {
-		logcfg_conf_err(attr, "unique identifier required");
 		return -EINVAL;
 	}
 
@@ -291,7 +272,7 @@ logcfg_rule_load_conf(const config_setting_t * __restrict setting)
 		set = config_setting_get_elem(setting, r);
 		logcfg_assert_intern(set);
 
-		err = logcfg_rule_load_conf_elem(set);
+		err = logcfg_rule_load_conf_elem(set, r);
 		if (err)
 			return err;
 	}

@@ -48,6 +48,13 @@ config LOGCFG_DAEMON_STDLOG_FORMAT
 	  See eLog library's header elog_format enum for more informations about
 	  available format flags.
 
+config LOGCFG_DB_MAX_LOG_SIZE
+	int "logcfgd database maximum transaction log file size"
+	range 128 4096
+	default 512
+	  Restrict logcfgd database transaction log file size to this maximum,
+	  expressed as kBytes.
+
 config LOGCFG_UTEST
 	bool "Unit tests"
 	default n
