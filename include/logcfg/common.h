@@ -5,11 +5,10 @@
  * Copyright (C) 2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
-#ifndef _LOGCFG_INTERN_COMMON_H
-#define _LOGCFG_INTERN_COMMON_H
+#ifndef _LOGCFG_COMMON_H
+#define _LOGCFG_COMMON_H
 
-#include "logcfg/priv/cdefs.h"
-#include <elog/elog.h>
+#include <logcfg/priv/cdefs.h>
 
 #if defined(CONFIG_LOGCFG_ASSERT_API)
 
@@ -36,20 +35,10 @@
 
 #endif /* defined(CONFIG_LOGCFG_ASSERT_INTERN) */
 
-extern struct elog * logcfg_logger;
+struct elog;
 
-#define logcfg_err(_format, ...) \
-	elog_err(logcfg_logger, _format ".", ## __VA_ARGS__)
+extern void
+logcfg_init(struct elog * logger)
+	__logcfg_nonull(1) __logcfg_export;
 
-#if defined(CONFIG_LOGCFG_DEBUG)
-
-#define logcfg_debug(_format, ...) \
-	elog_debug(logcfg_logger, _format ".", ## __VA_ARGS__)
-
-#else  /* !defined(CONFIG_LOGCFG_DEBUG) */
-
-#define logcfg_debug(_format, ...)
-
-#endif /* defined(CONFIG_LOGCFG_DEBUG) */
-
-#endif /* _LOGCFG_INTERN_COMMON_H */
+#endif /* _LOGCFG_COMMON_H */

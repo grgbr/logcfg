@@ -1,6 +1,26 @@
 #include "conf.h"
 #include <utils/path.h>
 
+void
+logcfg_conf_log_attrs(const config_setting_t *  setting,
+                      const char ** __restrict  path,
+                      unsigned int * __restrict line,
+                      const char ** __restrict  name)
+{
+	logcfg_assert_intern(setting);
+	logcfg_assert_intern(path);
+	logcfg_assert_intern(line);
+	logcfg_assert_intern(name);
+
+	*path = config_setting_source_file(setting);
+	logcfg_assert_intern(*path);
+
+	*line = config_setting_source_line(setting);
+	logcfg_assert_intern(*line);
+
+	*name = config_setting_name(setting);
+}
+
 #define logcfg_conf_loader_assert(_loader) \
 	logcfg_assert_intern((_loader)->name); \
 	logcfg_assert_intern((_loader)->name[0]); \

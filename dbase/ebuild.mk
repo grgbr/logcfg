@@ -18,8 +18,6 @@ common-cflags  := -Wall \
                   -I $(TOPDIR)/include \
                   -I $(TOPDIR) \
                   $(EXTRA_CFLAGS) \
-                  -D LOGCFG_SYSCONFIGDIR='"$(SYSCONFDIR)/logcfg"' \
-                  -D LOGCFG_LOCALSTATEDIR='"$(LOCALSTATEDIR)/logcfg"' \
                   -fvisibility=hidden
 common-ldflags := $(common-cflags) \
                   -L $(BUILDDIR)/../common \
@@ -34,39 +32,10 @@ common-cflags  := $(filter-out -DNDEBUG,$(common-cflags))
 common-ldflags := $(filter-out -DNDEBUG,$(common-ldflags))
 endif # ($(filter y,$(CONFIG_LOGCFG_ASSERT_API) $(CONFIG_LOGCFG_ASSERT_INTERN)),)
 
-bins := logcfgd
+builtins := builtin.a
 
-logcfgd-objs    := main.o gen.o
-logcfgd-cflags  := $(common-cflags)
-logcfgd-ldflags := $(common-ldflags) \
-                   $(BUILDDIR)/../dbase/builtin.a \
-                   -llogcfg_common
-logcfgd-pkgconf := libkvstore libdpack libelog libutils libstroll libconfig
-
-$(BUILDDIR)/logcfgd: $(BUILDDIR)/../common/liblogcfg_common.so \
-                     $(BUILDDIR)/../dbase/builtin.a
-
-bins := logcfg-clui
-logcfg-clui-objs    := clui.o
-logcfg-clui-cflags  := $(common-cflags)
-logcfg-clui-ldflags := $(common-ldflags) \
-                       $(BUILDDIR)/../dbase/builtin.a \
-                       -llogcfg_common
-logcfg-clui-pkgconf := libkvstore libdpack libelog libutils libstroll libconfig
-
-$(BUILDDIR)/logcfg-clui: $(BUILDDIR)/../common/liblogcfg_common.so \
-                         $(BUILDDIR)/../dbase/builtin.a
-
-install: $(SYSCONFDIR)/logcfg/logcfgd.conf
-
-.PHONY: $(SYSCONFDIR)/logcfg/logcfgd.conf
-$(SYSCONFDIR)/logcfg/logcfgd.conf: $(TOPDIR)/logcfgd.conf
-	$(call install_recipe,--mode=644,$(<),$(@))
-
-uninstall: _uninstall_data
-
-.PHONY: _uninstall_data
-_uninstall_data:
-	$(call rm_recipe,$(SYSCONFDIR)/logcfg/logcfgd.conf)
+builtin.a-objs    := session.o kvstore.o selector.o rule.o
+builtin.a-cflags  := $(common-cflags)
+builtin.a-pkgconf := libdmod libkvstore libdpack libstroll libconfig
 
 # vim: filetype=make :

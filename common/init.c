@@ -5,12 +5,14 @@
  * Copyright (C) 2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
-#ifndef _LOGCFG_INTERN_SELECTOR_H
-#define _LOGCFG_INTERN_SELECTOR_H
-
 #include "common.h"
-#include <kvstore/table.h>
 
-extern const struct kvs_table_desc logcfg_selector_table;
+struct elog * logcfg_logger;
 
-#endif /* _LOGCFG_INTERN_SELECTOR_H */
+void
+logcfg_init(struct elog * logger)
+{
+	logcfg_assert_api(logger);
+
+	logcfg_logger = logger;
+}
