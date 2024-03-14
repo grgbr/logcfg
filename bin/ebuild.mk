@@ -36,7 +36,7 @@ endif # ($(filter y,$(CONFIG_LOGCFG_ASSERT_API) $(CONFIG_LOGCFG_ASSERT_INTERN)),
 
 bins := logcfgd
 
-logcfgd-objs    := main.o gen.o
+logcfgd-objs    := daemon.o gen.o
 logcfgd-cflags  := $(common-cflags)
 logcfgd-ldflags := $(common-ldflags) \
                    $(BUILDDIR)/../dbase/builtin.a \

@@ -19,8 +19,8 @@ subdirs      += common
 subdirs      += dbase
 dbase-deps   := common
 
-subdirs      += logcfgd
-logcfgd-deps := dbase
+subdirs      += bin
+bin-deps     := dbase
 
 define liblogcfg_pkgconf_tmpl
 prefix=$(PREFIX)
