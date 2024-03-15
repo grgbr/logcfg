@@ -52,7 +52,13 @@ logcfg-clui-cflags  := $(common-cflags)
 logcfg-clui-ldflags := $(common-ldflags) \
                        $(BUILDDIR)/../dbase/builtin.a \
                        -llogcfg_common
-logcfg-clui-pkgconf := libkvstore libdpack libelog libutils libstroll libconfig
+logcfg-clui-pkgconf := libclui \
+                       libkvstore \
+                       libdpack \
+                       libelog \
+                       libutils \
+                       libstroll \
+                       libconfig
 
 $(BUILDDIR)/logcfg-clui: $(BUILDDIR)/../common/liblogcfg_common.so \
                          $(BUILDDIR)/../dbase/builtin.a

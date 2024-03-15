@@ -51,13 +51,13 @@ tagfiles := $(shell find $(addprefix $(CURDIR)/,$(subdirs)) \
 # Documentation generation
 ################################################################################
 
-doxyconf  := $(CURDIR)/sphinx/Doxyfile
-doxyenv   := SRCDIR="$(HEADERDIR) $(addprefix $(CURDIR)/,$(subdirs))"
-
-sphinxsrc := $(CURDIR)/sphinx
-sphinxenv := \
-	VERSION="$(VERSION)" \
-	$(if $(strip $(EBUILDDOC_TARGET_PATH)), \
-	     EBUILDDOC_TARGET_PATH="$(strip $(EBUILDDOC_TARGET_PATH))") \
-	$(if $(strip $(EBUILDDOC_INVENTORY_PATH)), \
-	     EBUILDDOC_INVENTORY_PATH="$(strip $(EBUILDDOC_INVENTORY_PATH))")
+#doxyconf  := $(CURDIR)/sphinx/Doxyfile
+#doxyenv   := SRCDIR="$(HEADERDIR) $(addprefix $(CURDIR)/,$(subdirs))"
+#
+#sphinxsrc := $(CURDIR)/sphinx
+#sphinxenv := \
+#	VERSION="$(VERSION)" \
+#	$(if $(strip $(EBUILDDOC_TARGET_PATH)), \
+#	     EBUILDDOC_TARGET_PATH="$(strip $(EBUILDDOC_TARGET_PATH))") \
+#	$(if $(strip $(EBUILDDOC_INVENTORY_PATH)), \
+#	     EBUILDDOC_INVENTORY_PATH="$(strip $(EBUILDDOC_INVENTORY_PATH))")
