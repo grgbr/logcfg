@@ -44,6 +44,7 @@ liblogcfg_common.so-ldflags := $(filter-out -fpie -fPIE,$(common-ldflags)) \
                                -Wl,-soname,liblogcfg_common.so
 liblogcfg_common.so-pkgconf := libdmod \
                                libdpack \
+                               libkvstore \
                                libelog \
                                libutils \
                                libstroll \
@@ -59,6 +60,7 @@ liblogcfg_common.a-objs     := static/init.o \
 liblogcfg_common.a-cflags   := $(common-cflags)
 liblogcfg_common.a-pkgconf  := libdmod \
                                libdpack \
+                               libkvstore \
                                libelog \
                                libutils \
                                libstroll \

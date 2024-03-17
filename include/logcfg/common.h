@@ -35,6 +35,9 @@
 
 #endif /* defined(CONFIG_LOGCFG_ASSERT_INTERN) */
 
+extern const char *
+logcfg_strerror(int err) __logcfg_export;
+
 struct elog;
 
 extern void

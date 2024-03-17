@@ -47,7 +47,7 @@ $(BUILDDIR)/logcfgd: $(BUILDDIR)/../common/liblogcfg_common.so \
                      $(BUILDDIR)/../dbase/builtin.a
 
 bins := logcfg-clui
-logcfg-clui-objs    := clui.o
+logcfg-clui-objs    := clui.o rule.o
 logcfg-clui-cflags  := $(common-cflags)
 logcfg-clui-ldflags := $(common-ldflags) \
                        $(BUILDDIR)/../dbase/builtin.a \
