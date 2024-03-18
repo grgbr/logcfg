@@ -35,7 +35,9 @@ logcfg_clui_sched_exec(void * ctx, logcfg_clui_exec_fn * exec);
 
 struct logcfg_session;
 
-typedef int (logcfg_clui_module_init_fn)(struct logcfg_session *);
+extern struct logcfg_session * logcfg_clui_sess;
+
+typedef int (logcfg_clui_module_init_fn)(void);
 typedef void (logcfg_clui_module_fini_fn)(void);
 
 struct logcfg_clui_module {
@@ -53,5 +55,15 @@ struct logcfg_clui_module {
 	"    Show syslog message matching rules.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_rule_module;
+
+/******************************************************************************
+ * Selector support
+ ******************************************************************************/
+
+#define LOGCFG_CLUI_TOP_SELECTOR_HELP \
+	"    %1$s%2$sselector show | help\n" \
+	"    Show syslog message selectors.\n"
+
+extern const struct logcfg_clui_module logcfg_clui_selector_module;
 
 #endif /* _LOGCFG_BIN_CLUI_H */

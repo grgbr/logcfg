@@ -261,7 +261,7 @@ logcfg_clui_dofini_modules(unsigned int id)
 }
 
 static int
-logcfg_clui_init_modules(struct logcfg_session * session)
+logcfg_clui_init_modules(void)
 {
 	unsigned int m;
 	int          err = 0;
@@ -270,7 +270,7 @@ logcfg_clui_init_modules(struct logcfg_session * session)
 		const struct logcfg_clui_module * mod = logcfg_clui_modules[m];
 
 		if (mod->init) {
-			err = mod->init(session);
+			err = mod->init();
 			if (err)
 				goto err;
 		}
@@ -295,7 +295,7 @@ logcfg_clui_fini_modules(void)
  ******************************************************************************/
 
 static struct elog_stdio       logcfg_clui_logger;
-static struct logcfg_session * logcfg_clui_sess;
+struct logcfg_session *        logcfg_clui_sess;
 static struct kvs_repo *       logcfg_clui_dbase;
 
 static void
@@ -373,7 +373,7 @@ logcfg_clui_init(struct clui_parser * parser, int argc, char * const argv[])
 
 	logcfg_info("database session ready");
 
-	err = logcfg_clui_init_modules(logcfg_clui_sess);
+	err = logcfg_clui_init_modules();
 	if (err)
 		goto destroy_session;
 

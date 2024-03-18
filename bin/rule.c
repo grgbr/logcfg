@@ -23,7 +23,7 @@ struct logcfg_clui_rule_table {
 	struct logcfg_rule_mapper * map;
 };
 
-static struct logcfg_clui_rule_table logcfg_clui_rule_view;
+static struct logcfg_clui_rule_table logcfg_clui_rule_table_view;
 
 #if 0
 static void
@@ -93,7 +93,6 @@ logcfg_clui_rule_table_load(struct clui_table * table, void * data __unused)
 		return 0;
 
 err:
-		clui_table_clear(table);
 		dmod_const_iter_destroy(iter);
 
 		return err;
@@ -112,29 +111,29 @@ logcfg_clui_rule_table_init(struct logcfg_clui_rule_table * table,
 
 #define LOGCFG_CLUI_RULE_TOTAL_WHINT \
 	(10.0 + \
-	 (double)LOGCFG_RULE_NAMESZ_MAX + \
-	 (double)LOGCFG_RULE_MATCHSZ_MAX)
+	 (double)(LOGCFG_RULE_NAMESZ_MAX - 1) + \
+	 (double)(LOGCFG_RULE_MATCHSZ_MAX- 1))
 
 	static const struct clui_column_desc cols[] = {
 		[LOGCFG_CLUI_RULE_ID_COL] = {
-#define LOGCFG_CLUI_RULE_MATCH_WHINT \
-	((double)LOGCFG_RULE_MATCHSZ_MAX / LOGCFG_CLUI_RULE_TOTAL_WHINT)
+#define LOGCFG_CLUI_RULE_ID_WHINT \
+	(10.0 / LOGCFG_CLUI_RULE_TOTAL_WHINT)
 			.label = "ID",
-			.whint = LOGCFG_CLUI_RULE_MATCH_WHINT,
+			.whint = LOGCFG_CLUI_RULE_ID_WHINT,
 			.flags = SCOLS_FL_RIGHT
 		},
 		[LOGCFG_CLUI_RULE_NAME_COL] = {
 #define LOGCFG_CLUI_RULE_NAME_WHINT \
-	((double)LOGCFG_RULE_NAMESZ_MAX / LOGCFG_CLUI_RULE_TOTAL_WHINT)
+	((double)(LOGCFG_RULE_NAMESZ_MAX - 1) / LOGCFG_CLUI_RULE_TOTAL_WHINT)
 			.label = "NAME",
 			.whint = LOGCFG_CLUI_RULE_NAME_WHINT,
 			.flags = 0
 		},
 		[LOGCFG_CLUI_RULE_MATCH_COL] = {
-#define LOGCFG_CLUI_RULE_ID_WHINT \
-	(10.0 / LOGCFG_CLUI_RULE_TOTAL_WHINT)
+#define LOGCFG_CLUI_RULE_MATCH_WHINT \
+	((double)(LOGCFG_RULE_MATCHSZ_MAX - 1) / LOGCFG_CLUI_RULE_TOTAL_WHINT)
 			.label = "MATCH",
-			.whint = LOGCFG_CLUI_RULE_ID_WHINT,
+			.whint = LOGCFG_CLUI_RULE_MATCH_WHINT,
 			.flags = SCOLS_FL_WRAP
 		}
 	};
@@ -184,7 +183,7 @@ logcfg_clui_rule_display(const struct logcfg_clui_ctx * ctx __unused,
 {
 	int ret;
 
-	ret = clui_table_load(&logcfg_clui_rule_view.clui, NULL);
+	ret = clui_table_load(&logcfg_clui_rule_table_view.clui, NULL);
 	if (ret) {
 		logcfg_clui_err(parser,
 		                ret,
@@ -192,7 +191,7 @@ logcfg_clui_rule_display(const struct logcfg_clui_ctx * ctx __unused,
 		return ret;
 	}
 
-	ret = clui_table_display(&logcfg_clui_rule_view.clui);
+	ret = clui_table_display(&logcfg_clui_rule_table_view.clui);
 	if (ret)
 		logcfg_clui_err(parser,
 		                ret,
@@ -274,15 +273,16 @@ static const struct clui_cmd logcfg_clui_rule_cmd = {
  ******************************************************************************/
 
 static int
-logcfg_clui_rule_init(struct logcfg_session * session)
+logcfg_clui_rule_init(void)
 {
-	return logcfg_clui_rule_table_init(&logcfg_clui_rule_view, session);
+	return logcfg_clui_rule_table_init(&logcfg_clui_rule_table_view,
+	                                   logcfg_clui_sess);
 }
 
 static void
 logcfg_clui_rule_fini(void)
 {
-	logcfg_clui_rule_table_fini(&logcfg_clui_rule_view);
+	logcfg_clui_rule_table_fini(&logcfg_clui_rule_table_view);
 }
 
 const struct logcfg_clui_module logcfg_clui_rule_module = {
