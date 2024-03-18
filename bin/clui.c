@@ -1,7 +1,6 @@
 #include "clui.h"
 #include "dbase/session.h"
 #include "dbase/kvstore.h"
-#include "dbase/selector.h"
 #include "dbase/rule.h"
 #include "common/conf.h"
 #include <clui/shell.h>
@@ -62,7 +61,7 @@ logcfg_clui_sched_help(void * ctx, const struct clui_cmd * cmd)
 
 #define LOGCFG_CLUI_SHELL_HELP \
 	"Synopsis:\n" \
-	LOGCFG_CLUI_SHELL_RULE_HELP \
+	LOGCFG_CLUI_TOP_RULE_HELP \
 	"\n" \
 	"    quit\n" \
 	"    Quit interactive shell.\n" \
@@ -75,7 +74,7 @@ logcfg_clui_shell_cmd_help(const struct clui_cmd    * cmd __unused,
                            const struct clui_parser * parser __unused,
                            FILE                     * stdio)
 {
-	fprintf(stdio, LOGCFG_CLUI_SHELL_HELP);
+	fprintf(stdio, LOGCFG_CLUI_SHELL_HELP, "", "");
 }
 
 static int
@@ -92,13 +91,18 @@ logcfg_clui_parse_shell(const struct clui_cmd * cmd,
 		goto help;
 	}
 
-	if (!strcmp(argv[0], "rule")) {
+	if (!strcmp(argv[0], "rule"))
 		return clui_parse_cmd(&logcfg_clui_rule_module.cmd,
 		                      parser,
 		                      argc - 1,
 		                      &argv[1],
 		                      ctx);
+
+	if (argc != 1) {
+		clui_err(parser, "invalid number of arguments.\n");
+		goto help;
 	}
+
 	if (!strcmp(argv[0], "quit")) {
 		return -ESHUTDOWN;
 	}
@@ -129,7 +133,7 @@ static const struct clui_cmd logcfg_clui_shell_cmd = {
 	"    %1$s -- Manage syslog daemon configuration.\n" \
 	"\n" \
 	"Synopsis:\n" \
-	"    %1$s [OPTIONS] shell\n" \
+	"    %1$s%2$sshell\n" \
 	"    Run in interactive shell mode.\n" \
 	"\n" \
 	LOGCFG_CLUI_TOP_RULE_HELP \
@@ -149,7 +153,10 @@ logcfg_clui_top_cmd_help(const struct clui_cmd    * cmd __unused,
                          const struct clui_parser * parser,
                          FILE                     * stdio)
 {
-	fprintf(stdio, LOGCFG_CLUI_TOP_HELP, clui_prefix(parser));
+	fprintf(stdio,
+	        LOGCFG_CLUI_TOP_HELP,
+	        clui_prefix(parser),
+	        " [OPTIONS] ");
 }
 
 static int
@@ -166,14 +173,19 @@ logcfg_clui_parse_top(const struct clui_cmd * cmd,
 		goto help;
 	}
 
-	if (!strcmp(argv[0], "rule")) {
+	if (!strcmp(argv[0], "rule"))
 		return clui_parse_cmd(&logcfg_clui_rule_module.cmd,
 		                      parser,
 		                      argc - 1,
 		                      &argv[1],
 		                      ctx);
+
+	if (argc != 1) {
+		clui_err(parser, "invalid number of arguments.\n");
+		goto help;
 	}
-	else if ((argc == 1) && !strcmp(argv[0], "shell")) {
+
+	if (!strcmp(argv[0], "shell")) {
 		if (!clui_has_tty()) {
 			logcfg_clui_err(parser,
 			                -ENOTTY,
@@ -238,13 +250,13 @@ static const struct logcfg_clui_module * const logcfg_clui_modules[] = {
 };
 
 static void
-logcfg_clui_dofini_modules(unsigned int id, struct logcfg_session * session)
+logcfg_clui_dofini_modules(unsigned int id)
 {
 	while (id--) {
 		const struct logcfg_clui_module * mod = logcfg_clui_modules[id];
 
 		if (mod->fini)
-			mod->fini(session);
+			mod->fini();
 	}
 }
 
@@ -267,15 +279,15 @@ logcfg_clui_init_modules(struct logcfg_session * session)
 	return 0;
 
 err:
-	logcfg_clui_dofini_modules(m, session);
+	logcfg_clui_dofini_modules(m);
 
 	return err;
 }
 
 static void
-logcfg_clui_fini_modules(struct logcfg_session * session)
+logcfg_clui_fini_modules(void)
 {
-	logcfg_clui_dofini_modules(array_nr(logcfg_clui_modules), session);
+	logcfg_clui_dofini_modules(array_nr(logcfg_clui_modules));
 }
 
 /******************************************************************************
@@ -386,7 +398,7 @@ logcfg_clui_fini(void)
 {
 	int ret;
 
-	logcfg_clui_fini_modules(logcfg_clui_sess);
+	logcfg_clui_fini_modules();
 
 	logcfg_session_destroy(logcfg_clui_sess);
 	ret = logcfg_dbase_close(logcfg_clui_dbase);

@@ -34,7 +34,7 @@ logcfg_clui_rule_update(struct clui_table * table)
 #endif
 
 static int
-logcfg_clui_rule_table_load(struct clui_table * table, void * data)
+logcfg_clui_rule_table_load(struct clui_table * table, void * data __unused)
 {
 	struct logcfg_clui_rule_table * tbl = (struct logcfg_clui_rule_table *)
 	                                      table;
@@ -82,12 +82,8 @@ logcfg_clui_rule_table_load(struct clui_table * table, void * data)
 		}
 
 		err = dmod_const_iter_error(iter);
-		if (err) {
-			logcfg_clui_err((const struct clui_parser *)data,
-			                err,
-			                "failed to iterate over rules");
+		if (err)
 			goto err;
-		}
 
 		clui_table_sort(table, LOGCFG_CLUI_RULE_NAME_COL);
 		dmod_const_iter_destroy(iter);
@@ -142,7 +138,7 @@ logcfg_clui_rule_table_init(struct logcfg_clui_rule_table * table,
 			.flags = SCOLS_FL_WRAP
 		}
 	};
-	static const struct clui_table_desc  tbl = {
+	static const struct clui_table_desc  desc = {
 		.load       = logcfg_clui_rule_table_load,
 		.noheadings = 0,
 		.col_cnt    = array_nr(cols),
@@ -150,7 +146,7 @@ logcfg_clui_rule_table_init(struct logcfg_clui_rule_table * table,
 	};
 	int                                  err;
 
-	err = clui_table_init(&table->clui, &tbl);
+	err = clui_table_init(&table->clui, &desc);
 	if (err)
 		return err;
 
@@ -179,7 +175,7 @@ logcfg_clui_rule_table_fini(struct logcfg_clui_rule_table * table)
 	"    %1$s%2$srule show\n" \
 	"    Show syslog message matching rules.\n" \
 	"\n" \
-	"    %1$s%2$srule [help]\n" \
+	"    %1$s%2$srule help\n" \
 	"    This help message.\n"
 
 static int
@@ -188,7 +184,7 @@ logcfg_clui_rule_display(const struct logcfg_clui_ctx * ctx __unused,
 {
 	int ret;
 
-	ret = clui_table_load(&logcfg_clui_rule_view.clui, parser);
+	ret = clui_table_load(&logcfg_clui_rule_view.clui, NULL);
 	if (ret) {
 		logcfg_clui_err(parser,
 		                ret,
@@ -214,7 +210,7 @@ logcfg_clui_parse_rule(const struct clui_cmd * cmd,
 {
 	logcfg_assert_intern(ctx);
 
-	if (argc < 1) {
+	if (argc != 1) {
 		clui_err(parser, "invalid number of arguments.\n");
 		goto help;
 	}
@@ -284,7 +280,7 @@ logcfg_clui_rule_init(struct logcfg_session * session)
 }
 
 static void
-logcfg_clui_rule_fini(struct logcfg_session * session __unused)
+logcfg_clui_rule_fini(void)
 {
 	logcfg_clui_rule_table_fini(&logcfg_clui_rule_view);
 }
