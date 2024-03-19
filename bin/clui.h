@@ -46,13 +46,17 @@ struct logcfg_clui_module {
 	logcfg_clui_module_fini_fn * fini;
 };
 
+extern void
+logcfg_clui_display_help(const char *               help,
+                         const struct clui_parser * parser,
+                         FILE *                     stdio);
+
 /******************************************************************************
  * Rule support
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_RULE_HELP \
-	"    %1$s%2$srule show | help\n" \
-	"    Show syslog message matching rules.\n"
+	"    rule     -- Manage syslog daemon message matching rules.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_rule_module;
 
@@ -61,8 +65,7 @@ extern const struct logcfg_clui_module logcfg_clui_rule_module;
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_SELECTOR_HELP \
-	"    %1$s%2$sselector show | help\n" \
-	"    Show syslog message selectors.\n"
+	"    selector -- Manage syslog daemon message selectors.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_selector_module;
 

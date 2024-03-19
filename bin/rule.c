@@ -169,14 +169,6 @@ logcfg_clui_rule_table_fini(struct logcfg_clui_rule_table * table)
  * Rule command handling
  ******************************************************************************/
 
-#define LOGCFG_CLUI_RULE_HELP \
-	"Synopsis:\n" \
-	"    %1$s%2$srule show\n" \
-	"    Show syslog message matching rules.\n" \
-	"\n" \
-	"    %1$s%2$srule help\n" \
-	"    This help message.\n"
-
 static int
 logcfg_clui_rule_display(const struct logcfg_clui_ctx * ctx __unused,
                          const struct clui_parser *     parser)
@@ -254,12 +246,16 @@ logcfg_clui_rule_help(const struct clui_cmd    * cmd __unused,
                       const struct clui_parser * parser,
                       FILE                     * stdio)
 {
-	const char * pref = clui_prefix(parser);
+#define LOGCFG_CLUI_RULE_HELP \
+	"Usage:\n" \
+	"    %1$s%2$srule <COMMAND>\n" \
+	"    Manage syslog daemon message matching rules.\n" \
+	"\n" \
+	"Where COMMAND:\n" \
+	"    show -- Show syslog daemon message matching rules.\n" \
+	"    help -- This help message.\n"
 
-	if (!pref)
-		fprintf(stdio, LOGCFG_CLUI_RULE_HELP, "", "");
-	else
-		fprintf(stdio, LOGCFG_CLUI_RULE_HELP, pref, " ");
+	logcfg_clui_display_help(LOGCFG_CLUI_RULE_HELP, parser, stdio);
 }
 
 static const struct clui_cmd logcfg_clui_rule_cmd = {

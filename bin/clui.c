@@ -36,6 +36,39 @@ logcfg_clui_exec_help(const struct logcfg_clui_ctx * ctx,
 }
 
 void
+logcfg_clui_display_help(const char *               help,
+                         const struct clui_parser * parser,
+                         FILE *                     stdio)
+{
+	logcfg_assert_intern(help);
+	logcfg_assert_intern(*help);
+	logcfg_assert_intern(parser);
+	logcfg_assert_intern(stdio);
+
+	const char * pref = clui_prefix(parser);
+
+#define LOGCFG_CLUI_TOP_OPTS_BRIEF \
+	" [OPTIONS] "
+
+#define LOGCFG_CLUI_TOP_OPTS_DESC \
+	"\n" \
+	"With OPTIONS:\n" \
+	"    -c | --config <CONFIG_PATH> use CONFIG_PATH as pathname to configuration\n" \
+	"                                file\n" \
+	"    -d | --dbdir <DBDIR_PATH>   use DBDIR_PATH as pathname to database\n" \
+	"                                directory. Defaults to:\n" \
+	"                                [" LOGCFG_LOCALSTATEDIR "]\n"
+
+	if (!pref) {
+		fprintf(stdio, help, "", "");
+		return;
+	}
+
+	fprintf(stdio, help, pref, LOGCFG_CLUI_TOP_OPTS_BRIEF);
+	fputs(LOGCFG_CLUI_TOP_OPTS_DESC, stdio);
+}
+
+void
 logcfg_clui_sched_exec(void * ctx, logcfg_clui_exec_fn * exec)
 {
 	logcfg_assert_intern(ctx);
@@ -59,22 +92,30 @@ logcfg_clui_sched_help(void * ctx, const struct clui_cmd * cmd)
  * Shell command
  ******************************************************************************/
 
+#define LOGCFG_CLUI_TOP_USAGE_HELP \
+	"Usage:\n" \
+	"    %1$s%2$s<COMMAND>\n" \
+	"    Manage syslog daemon configuration.\n" \
+	"\n" \
+	"Where COMMAND:\n"
+
+#define LOGCFG_CLUI_TOP_HELP_HELP \
+	"    help     -- This help message.\n"
+
 #define LOGCFG_CLUI_SHELL_HELP \
-	"Synopsis:\n" \
+	LOGCFG_CLUI_TOP_USAGE_HELP \
+	\
 	LOGCFG_CLUI_TOP_RULE_HELP \
-	"\n" \
-	"    quit\n" \
-	"    Quit interactive shell.\n" \
-	"\n" \
-	"    help\n" \
-	"    This help message.\n"
+	LOGCFG_CLUI_TOP_SELECTOR_HELP \
+	"    quit     -- Quit interactive shell.\n" \
+	LOGCFG_CLUI_TOP_HELP_HELP
 
 static void
 logcfg_clui_shell_cmd_help(const struct clui_cmd    * cmd __unused,
-                           const struct clui_parser * parser __unused,
+                           const struct clui_parser * parser,
                            FILE                     * stdio)
 {
-	fprintf(stdio, LOGCFG_CLUI_SHELL_HELP, "", "");
+	logcfg_clui_display_help(LOGCFG_CLUI_SHELL_HELP, parser, stdio);
 }
 
 static int
@@ -129,34 +170,19 @@ static const struct clui_cmd logcfg_clui_shell_cmd = {
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_HELP \
-	"Usage:\n" \
-	"    %1$s -- Manage syslog daemon configuration.\n" \
-	"\n" \
-	"Synopsis:\n" \
-	"    %1$s%2$sshell\n" \
-	"    Run in interactive shell mode.\n" \
-	"\n" \
+	LOGCFG_CLUI_TOP_USAGE_HELP \
+	\
 	LOGCFG_CLUI_TOP_RULE_HELP \
-	"\n" \
-	"    %1$s help\n" \
-	"    This help message.\n" \
-	"\n" \
-	"With [OPTIONS]:\n" \
-	"    -c | --config <CONFIG_PATH> use CONFIG_PATH as pathname to configuration\n" \
-	"                                file\n" \
-	"    -d | --dbdir <DBDIR_PATH>   use DBDIR_PATH as pathname to database\n" \
-	"                                directory. Defaults to:\n" \
-	"                                [" LOGCFG_LOCALSTATEDIR "]\n"
+	LOGCFG_CLUI_TOP_SELECTOR_HELP \
+	"    shell    -- Run in interactive shell mode.\n" \
+	LOGCFG_CLUI_TOP_HELP_HELP
 
 static void
 logcfg_clui_top_cmd_help(const struct clui_cmd    * cmd __unused,
                          const struct clui_parser * parser,
                          FILE                     * stdio)
 {
-	fprintf(stdio,
-	        LOGCFG_CLUI_TOP_HELP,
-	        clui_prefix(parser),
-	        " [OPTIONS] ");
+	logcfg_clui_display_help(LOGCFG_CLUI_TOP_HELP, parser, stdio);
 }
 
 static int
