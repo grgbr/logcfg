@@ -158,14 +158,6 @@ logcfg_clui_selector_table_fini(struct logcfg_clui_selector_table * table)
  * Selector command handling
  ******************************************************************************/
 
-#define LOGCFG_CLUI_SELECTOR_HELP \
-	"Synopsis:\n" \
-	"    %1$s%2$sselector show\n" \
-	"    Show syslog message selectors.\n" \
-	"\n" \
-	"    %1$s%2$sselector help\n" \
-	"    This help message.\n"
-
 static int
 logcfg_clui_selector_display(const struct logcfg_clui_ctx * ctx __unused,
                              const struct clui_parser *     parser)
@@ -253,12 +245,14 @@ logcfg_clui_selector_help(const struct clui_cmd    * cmd __unused,
                           const struct clui_parser * parser,
                           FILE                     * stdio)
 {
-	const char * pref = clui_prefix(parser);
-
-	if (!pref)
-		fprintf(stdio, LOGCFG_CLUI_SELECTOR_HELP, "", "");
-	else
-		fprintf(stdio, LOGCFG_CLUI_SELECTOR_HELP, pref, " ");
+	logcfg_clui_display_help(
+		"selector <SELECTOR_SPEC>",
+		"Manage syslog daemon message selectors",
+		"Where <SELECTOR_SPEC>:\n"
+		"    show -- Show syslog daemon message selectors.\n"
+		"    help -- This help message.\n",
+		parser,
+		stdio);
 }
 
 static const struct clui_cmd logcfg_clui_selector_cmd = {

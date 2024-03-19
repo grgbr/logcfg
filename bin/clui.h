@@ -1,20 +1,22 @@
 #ifndef _LOGCFG_BIN_CLUI_H
 #define _LOGCFG_BIN_CLUI_H
 
+#include "logcfg/common.h"
 #include <clui/clui.h>
 #include <stdbool.h>
 
-#define logcfg_clui_err(_parser, _error, _format, ...) \
-	clui_err(_parser, \
-	         _format ": %s (%d).", \
-	         ## __VA_ARGS__, \
-	         logcfg_strerror(_error), \
-	         _error)
+struct logcfg_session;
 
-extern bool logcfg_clui_shell_mode;
+extern struct logcfg_session * logcfg_clui_sess;
 
-extern void
-logcfg_clui_sched_help(void * ctx, const struct clui_cmd * cmd);
+typedef int (logcfg_clui_module_init_fn)(void);
+typedef void (logcfg_clui_module_fini_fn)(void);
+
+struct logcfg_clui_module {
+	struct clui_cmd              cmd;
+	logcfg_clui_module_init_fn * init;
+	logcfg_clui_module_fini_fn * fini;
+};
 
 struct logcfg_clui_ctx;
 
@@ -33,30 +35,39 @@ struct logcfg_clui_ctx {
 extern void
 logcfg_clui_sched_exec(void * ctx, logcfg_clui_exec_fn * exec);
 
-struct logcfg_session;
+extern void
+logcfg_clui_sched_help(void * ctx, const struct clui_cmd * cmd);
 
-extern struct logcfg_session * logcfg_clui_sess;
-
-typedef int (logcfg_clui_module_init_fn)(void);
-typedef void (logcfg_clui_module_fini_fn)(void);
-
-struct logcfg_clui_module {
-	struct clui_cmd              cmd;
-	logcfg_clui_module_init_fn * init;
-	logcfg_clui_module_fini_fn * fini;
-};
+#define logcfg_clui_err(_parser, _error, _format, ...) \
+	clui_err(_parser, \
+	         _format ": %s (%d).", \
+	         ## __VA_ARGS__, \
+	         logcfg_strerror(_error), \
+	         _error)
 
 extern void
-logcfg_clui_display_help(const char *               help,
-                         const struct clui_parser * parser,
-                         FILE *                     stdio);
+logcfg_clui_display_help(const char * __restrict               brief,
+                         const char * __restrict               desc,
+                         const char * __restrict               spec,
+                         const struct clui_parser * __restrict parser,
+                         FILE * __restrict                     stdio)
+	__logcfg_nonull(1, 2, 3, 4, 5);
+
+#define LOGCFG_CLUI_DEFINE_HELP(_func, _brief, _desc, _spec) \
+	static void \
+	_func(const struct clui_cmd * __restrict    cmd __unused, \
+	      const struct clui_parser * __restrict parser, \
+	      FILE * __restrict                     stdio) \
+	{ \
+		logcfg_clui_display_help(_brief, _desc, _spec, parser, stdio); \
+	}
 
 /******************************************************************************
  * Rule support
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_RULE_HELP \
-	"    rule     -- Manage syslog daemon message matching rules.\n"
+	"    rule     help|<RULE_SPEC>     -- Manage syslog daemon message matching rules.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_rule_module;
 
@@ -65,7 +76,7 @@ extern const struct logcfg_clui_module logcfg_clui_rule_module;
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_SELECTOR_HELP \
-	"    selector -- Manage syslog daemon message selectors.\n"
+	"    selector help|<SELECTOR_SPEC> -- Manage syslog daemon message selectors.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_selector_module;
 

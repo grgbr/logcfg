@@ -241,22 +241,13 @@ logcfg_clui_rule_complete(const struct clui_cmd * cmd __unused,
 	return clui_shell_build_static_matches(matches, array_nr(matches));
 }
 
-static void
-logcfg_clui_rule_help(const struct clui_cmd    * cmd __unused,
-                      const struct clui_parser * parser,
-                      FILE                     * stdio)
-{
-#define LOGCFG_CLUI_RULE_HELP \
-	"Usage:\n" \
-	"    %1$s%2$srule <COMMAND>\n" \
-	"    Manage syslog daemon message matching rules.\n" \
-	"\n" \
-	"Where COMMAND:\n" \
-	"    show -- Show syslog daemon message matching rules.\n" \
-	"    help -- This help message.\n"
-
-	logcfg_clui_display_help(LOGCFG_CLUI_RULE_HELP, parser, stdio);
-}
+LOGCFG_CLUI_DEFINE_HELP(
+	logcfg_clui_rule_help,
+	"rule <RULE_SPEC>",
+	"Manage syslog daemon message matching rules",
+	"Where <RULE_SPEC>:\n"
+	"    show -- Show syslog daemon message matching rules.\n"
+	"    help -- This help message.\n")
 
 static const struct clui_cmd logcfg_clui_rule_cmd = {
 	.parse    = logcfg_clui_parse_rule,
