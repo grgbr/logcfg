@@ -62,6 +62,15 @@ logcfg_clui_display_help(const char * __restrict               brief,
 		logcfg_clui_display_help(_brief, _desc, _spec, parser, stdio); \
 	}
 
+extern int
+logcfg_clui_begin_xact(const struct clui_parser * __restrict parser)
+	__logcfg_nonull(1);
+
+extern int
+logcfg_clui_end_xact(const struct clui_parser * __restrict parser,
+                     int                                   status)
+	__logcfg_nonull(1);
+
 /******************************************************************************
  * Rule support
  ******************************************************************************/

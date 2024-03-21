@@ -5,6 +5,7 @@
 #include "common/conf.h"
 #include <clui/shell.h>
 #include <utils/signal.h>
+#include <dmod/xact.h>
 #include <stdlib.h>
 #include <locale.h>
 
@@ -326,9 +327,47 @@ logcfg_clui_fini_modules(void)
  * Main handling
  ******************************************************************************/
 
-static struct elog_stdio       logcfg_clui_logger;
-struct logcfg_session *        logcfg_clui_sess;
-static struct kvs_repo *       logcfg_clui_dbase;
+static struct elog_stdio  logcfg_clui_logger;
+static struct kvs_repo *  logcfg_clui_dbase;
+struct logcfg_session *   logcfg_clui_sess;
+static struct dmod_xact * logcfg_clui_xact;
+
+int
+logcfg_clui_begin_xact(const struct clui_parser * __restrict parser)
+{
+	logcfg_assert_intern(parser);
+	logcfg_assert_intern(logcfg_clui_xact);
+
+	int ret;
+
+	ret = dmod_xact_begin(logcfg_clui_xact, NULL);
+	if (ret)
+		clui_err(parser,
+		         "failed to begin transaction: %s (%d).",
+		         dmod_xact_strerror(logcfg_clui_xact, ret),
+		         ret);
+
+	return ret;
+}
+
+int
+logcfg_clui_end_xact(const struct clui_parser * __restrict parser,
+                     int                                   status)
+{
+	logcfg_assert_intern(parser);
+	logcfg_assert_intern(logcfg_clui_xact);
+
+	int ret;
+
+	ret = dmod_xact_end(logcfg_clui_xact, status);
+	if (ret)
+		clui_err(parser,
+		         "failed to complete transaction: %s (%d).",
+		         dmod_xact_strerror(logcfg_clui_xact, ret),
+		         ret);
+
+	return ret;
+}
 
 static void
 logcfg_clui_handle_sig(int signo __unused)
@@ -403,16 +442,22 @@ logcfg_clui_init(struct clui_parser * parser, int argc, char * const argv[])
 	if (!logcfg_clui_sess)
 		goto close_dbase;
 
+	logcfg_clui_xact = logcfg_session_create_xact(logcfg_clui_sess);
+	if (!logcfg_clui_xact)
+		goto destroy_session;
+
 	logcfg_info("database session ready");
 
 	err = logcfg_clui_init_modules();
 	if (err)
-		goto destroy_session;
+		goto destroy_xact;
 
 	logcfg_info("command line user interface ready");
 
 	return 0;
 
+destroy_xact:
+	dmod_xact_destroy(logcfg_clui_xact);
 destroy_session:
 	logcfg_session_destroy(logcfg_clui_sess);
 close_dbase:
@@ -432,6 +477,7 @@ logcfg_clui_fini(void)
 
 	logcfg_clui_fini_modules();
 
+	dmod_xact_destroy(logcfg_clui_xact);
 	logcfg_session_destroy(logcfg_clui_sess);
 	ret = logcfg_dbase_close(logcfg_clui_dbase);
 	logcfg_dbase_destroy(logcfg_clui_dbase);

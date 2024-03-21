@@ -53,6 +53,7 @@ logcfg-clui-ldflags := $(common-ldflags) \
                        $(BUILDDIR)/../dbase/builtin.a \
                        -llogcfg_common
 logcfg-clui-pkgconf := libclui \
+                       libdmod \
                        libkvstore \
                        libdpack \
                        libelog \

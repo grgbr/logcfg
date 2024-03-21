@@ -159,36 +159,32 @@ logcfg_clui_selector_table_fini(struct logcfg_clui_selector_table * table)
  ******************************************************************************/
 
 static int
-logcfg_clui_selector_display(const struct logcfg_clui_ctx * ctx __unused,
-                             const struct clui_parser *     parser)
+logcfg_clui_selector_show(const struct logcfg_clui_ctx * ctx __unused,
+                          const struct clui_parser *     parser)
 {
-	struct logcfg_xact * xact;
-	int                  err;
+	int          ret;
+	const char * msg = NULL;
 
-	xact = logcfg_clui_begin_xact(parser);
-	if (!xact)
-		return -errno;
+	ret = logcfg_clui_begin_xact(parser);
+	if (ret)
+		goto err;
 
-	err = clui_table_load(&logcfg_clui_selector_table_view.clui, xact);
+	ret = clui_table_load(&logcfg_clui_selector_table_view.clui, xact);
 
-	logcfg_clui_rollback_xact(xact);
+	ret = logcfg_clui_end_xact(parser, ret);
+	if (ret)
+		goto err;
 
-	if (err) {
-		logcfg_clui_err(parser,
-		                err,
-		                "failed to load message selector list");
-		return err;
-	}
-
-	err = clui_table_display(&logcfg_clui_selector_table_view.clui);
-	if (err) {
-		logcfg_clui_err(parser,
-		                ret,
-		                "failed to display message selector list");
-		return err;
-	}
+	ret = clui_table_display(&logcfg_clui_selector_table_view.clui);
+	if (ret)
+		goto err;
 
 	return 0;
+
+err:
+	clui_err(parser, "failed to show selectors.\n");
+
+	return ret;
 }
 
 static int
@@ -206,7 +202,7 @@ logcfg_clui_parse_selector(const struct clui_cmd * cmd,
 	}
 
 	if (!strcmp(argv[0], "show")) {
-		logcfg_clui_sched_exec(ctx, logcfg_clui_selector_display);
+		logcfg_clui_sched_exec(ctx, logcfg_clui_selector_show);
 		return 0;
 	}
 	else if (!strcmp(argv[0], "help")) {
@@ -283,48 +279,3 @@ const struct logcfg_clui_module logcfg_clui_selector_module = {
 	.init = logcfg_clui_selector_init,
 	.fini = logcfg_clui_selector_fini
 };
-
-////////////////////////////////////////////////////////////////////////////////
-
-struct dmod_xact *
-logcfg_clui_begin_xact(const struct clui_parser * parser)
-{
-	struct dmod_xact * xact;
-
-	xact = logcfg_session_begin_xact(logcfg_clui_sess, NULL);
-	if (!xact) {
-		int err = errno;
-
-		logcfg_clui_err(parser, -err, "failed to begin transaction");
-
-		errno = err;
-	}
-
-	return xact;
-}
-
-int
-logcfg_clui_commit_xact(struct dmod_xact *         xact,
-                        const struct clui_parser * parser)
-{
-	int err;
-
-	err = dmod_xact_commit(xact);
-	if (err)
-		logcfg_clui_err(parser, err, "failed to commit transaction");
-
-	return err;
-}
-
-int
-logcfg_clui_rollback_xact(struct dmod_xact *         xact,
-                          const struct clui_parser * parser)
-{
-	int err;
-
-	err = dmod_xact_rollback(xact);
-	if (err)
-		logcfg_clui_err(parser, err, "failed to rollback transaction");
-
-	return err;
-}

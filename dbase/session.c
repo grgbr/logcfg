@@ -2,6 +2,14 @@
 #include "selector.h"
 #include "rule.h"
 #include "common/common.h"
+#include <dmod/xact.h>
+
+static struct dmod_xact *
+logcfg_dbase_session_xact(const struct logcfg_session * session)
+{
+	return dmod_xact_create_kvs(
+		logcfg_dbase_session_get_kvdb(session));
+}
 
 static void
 logcfg_dbase_session_fini(struct logcfg_session * session __unused)
@@ -9,6 +17,7 @@ logcfg_dbase_session_fini(struct logcfg_session * session __unused)
 }
 
 static const struct logcfg_session_ops logcfg_dbase_session_ops = {
+	.xact = logcfg_dbase_session_xact,
 	.fini = logcfg_dbase_session_fini
 };
 

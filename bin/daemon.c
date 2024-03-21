@@ -30,7 +30,7 @@ logcfg_clui_show_rules(struct logcfg_session * session)
 	ret = dmod_const_iter_error(iter);
 	if (ret)
 		logcfg_info("failed to iterate over rules: %s",
-		            dmod_const_iter_strerror(iter));
+		            dmod_const_iter_strerror(iter, ret));
 
 	dmod_const_iter_destroy(iter);
 
