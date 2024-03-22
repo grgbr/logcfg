@@ -2,6 +2,7 @@
 #include "session.h"
 #include "kvstore.h"
 #include <kvstore/autorec.h>
+#include <dmod/xact.h>
 
 /******************************************************************************
  * Selector database table
@@ -144,7 +145,7 @@ logcfg_selector_dbase_load_byid(struct logcfg_selector_mapper * mapper,
 static int
 logcfg_selector_dbase_save(struct dmod_mapper * mapper,
                            struct dmod_object * object,
-                           void *               data)
+                           struct dmod_xact *   xact)
 {
 	logcfg_assert_intern(mapper);
 	logcfg_assert_intern(object);
@@ -154,7 +155,6 @@ logcfg_selector_dbase_save(struct dmod_mapper * mapper,
 	struct logcfg_selector *              sel =
 		(struct logcfg_selector *)object;
 	struct kvs_chunk                      item;
-	const struct kvs_xact *               xact = data;
 	int                                   ret;
 
 	logcfg_selector_mapper_assert_api(&map->base);
@@ -182,12 +182,12 @@ logcfg_selector_dbase_save(struct dmod_mapper * mapper,
 
 	if (!kvs_autorec_id_isok(sel->id))
 		ret = kvs_autorec_add(kvs_table_get_data_store(map->table),
-		                      xact,
+		                      dmod_xact_get_kvs(xact),
 		                      &sel->id,
 		                      &item);
 	else
 		ret = kvs_autorec_update(kvs_table_get_data_store(map->table),
-		                         xact,
+		                         dmod_xact_get_kvs(xact),
 		                         sel->id,
 		                         &item);
 	if (ret)
@@ -203,7 +203,8 @@ fini:
 
 const struct logcfg_selector_mapper_ops logcfg_selector_dbase_mapper_ops = {
 	.dmod = {
-		.save = logcfg_selector_dbase_save
+		.save   = logcfg_selector_dbase_save,
+		.errstr = kvs_strerror
 	},
 	.load_byid    = logcfg_selector_dbase_load_byid
 };

@@ -332,38 +332,70 @@ static struct kvs_repo *  logcfg_clui_dbase;
 struct logcfg_session *   logcfg_clui_sess;
 static struct dmod_xact * logcfg_clui_xact;
 
-int
+struct dmod_xact *
 logcfg_clui_begin_xact(const struct clui_parser * __restrict parser)
+{
+	logcfg_assert_intern(parser);
+	logcfg_assert_intern(logcfg_clui_xact);
+
+	int err;
+
+	err = dmod_xact_begin(logcfg_clui_xact, NULL);
+	if (err) {
+		clui_err(parser,
+		         "failed to begin transaction: %s (%d).",
+		         logcfg_session_strerror(logcfg_clui_sess, err),
+		         err);
+
+		errno = -err;
+
+		return NULL;
+	}
+
+	return logcfg_clui_xact;
+}
+
+int
+logcfg_clui_end_xact(struct dmod_xact *                    xact,
+                     int                                   status,
+                     const struct clui_parser * __restrict parser)
 {
 	logcfg_assert_intern(parser);
 	logcfg_assert_intern(logcfg_clui_xact);
 
 	int ret;
 
-	ret = dmod_xact_begin(logcfg_clui_xact, NULL);
-	if (ret)
+	ret = dmod_xact_end(xact, status);
+	if (!ret)
+		return 0;
+
+	if (!status)
 		clui_err(parser,
-		         "failed to begin transaction: %s (%d).",
-		         dmod_xact_strerror(logcfg_clui_xact, ret),
+		         "failed to end transaction: %s (%d).",
+		         logcfg_session_strerror(logcfg_clui_sess, ret),
 		         ret);
 
 	return ret;
 }
 
 int
-logcfg_clui_end_xact(const struct clui_parser * __restrict parser,
-                     int                                   status)
+logcfg_clui_abort_xact(struct dmod_xact *                    xact,
+                       int                                   status,
+                       const struct clui_parser * __restrict parser)
 {
 	logcfg_assert_intern(parser);
 	logcfg_assert_intern(logcfg_clui_xact);
 
 	int ret;
 
-	ret = dmod_xact_end(logcfg_clui_xact, status);
-	if (ret)
+	ret = dmod_xact_abort(xact, status);
+	if (!ret)
+		return 0;
+
+	if (!status)
 		clui_err(parser,
-		         "failed to complete transaction: %s (%d).",
-		         dmod_xact_strerror(logcfg_clui_xact, ret),
+		         "failed to abort transaction: %s (%d).",
+		         logcfg_session_strerror(logcfg_clui_sess, ret),
 		         ret);
 
 	return ret;

@@ -62,21 +62,28 @@ logcfg_clui_display_help(const char * __restrict               brief,
 		logcfg_clui_display_help(_brief, _desc, _spec, parser, stdio); \
 	}
 
-extern int
+extern struct dmod_xact *
 logcfg_clui_begin_xact(const struct clui_parser * __restrict parser)
 	__logcfg_nonull(1);
 
 extern int
-logcfg_clui_end_xact(const struct clui_parser * __restrict parser,
-                     int                                   status)
-	__logcfg_nonull(1);
+logcfg_clui_end_xact(struct dmod_xact *                    xact,
+                     int                                   status,
+                     const struct clui_parser * __restrict parser)
+	__logcfg_nonull(1, 3);
+
+extern int
+logcfg_clui_abort_xact(struct dmod_xact *                    xact,
+                       int                                   status,
+                       const struct clui_parser * __restrict parser)
+	__logcfg_nonull(1, 3);
 
 /******************************************************************************
  * Rule support
  ******************************************************************************/
 
 #define LOGCFG_CLUI_TOP_RULE_HELP \
-	"    rule     help|<RULE_SPEC>     -- Manage syslog daemon message matching rules.\n"
+	"    rule     help|<RULE_SPEC>     -- Manage syslog daemon matching rules.\n"
 
 extern const struct logcfg_clui_module logcfg_clui_rule_module;
 

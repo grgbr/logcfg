@@ -4,11 +4,25 @@
 #include "common/common.h"
 #include <dmod/xact.h>
 
+static const char *
+logcfg_dbase_session_errstr(const struct logcfg_session * session __unused,
+                            int                           error)
+{
+	logcfg_assert_api(error <= 0);
+
+	return kvs_strerror(error);
+}
+
 static struct dmod_xact *
 logcfg_dbase_session_xact(const struct logcfg_session * session)
 {
-	return dmod_xact_create_kvs(
-		logcfg_dbase_session_get_kvdb(session));
+	struct dmod_xact_kvs * xact;
+
+	xact = dmod_xact_create_kvs(logcfg_dbase_session_get_kvdb(session));
+	if (!xact)
+		return NULL;
+
+	return (struct dmod_xact *)xact;
 }
 
 static void
@@ -17,8 +31,9 @@ logcfg_dbase_session_fini(struct logcfg_session * session __unused)
 }
 
 static const struct logcfg_session_ops logcfg_dbase_session_ops = {
-	.xact = logcfg_dbase_session_xact,
-	.fini = logcfg_dbase_session_fini
+	.xact   = logcfg_dbase_session_xact,
+	.fini   = logcfg_dbase_session_fini,
+	.errstr = logcfg_dbase_session_errstr
 };
 
 static const struct logcfg_mapper_repo_ops logcfg_dbase_mappers_ops = {

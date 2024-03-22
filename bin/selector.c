@@ -18,89 +18,103 @@ enum {
 
 struct logcfg_clui_selector_table {
 	struct clui_table               clui;
-	bool                            loaded;
 	struct logcfg_selector_mapper * map;
 };
 
 static struct logcfg_clui_selector_table logcfg_clui_selector_table_view;
 
-#if 0
-static void
-logcfg_clui_selector_update(struct clui_table * table)
-{
-	((struct logcfg_clui_selector_table *)table)->loaded = false;
-}
-#endif
-
 static int
-logcfg_clui_selector_table_load(struct clui_table * table, void * data)
+logcfg_clui_selector_table_load(struct clui_table *        table,
+                                const struct clui_parser * parser,
+                                void *                     data)
 {
 	struct logcfg_clui_selector_table * tbl =
 		(struct logcfg_clui_selector_table *)table;
+	struct dmod_xact *                  xact;
+	struct dmod_iter *                  iter;
+	const struct logcfg_selector *      selector;
+	int                                 err;
 
-	if (!tbl->loaded) {
-		struct dmod_const_iter *       iter;
-		const struct logcfg_selector * selector;
-		int                            err;
+	clui_table_clear(table);
 
-		clui_table_clear(table);
-
-		iter = logcfg_selector_iter(tbl->map,
-		                            (struct logcfg_xact *)data);
-		if (!iter)
-			return -errno;
-
-		logcfg_selector_iter_foreach(iter, selector) {
-			struct libscols_line *      line;
-			const struct stroll_lvstr * name;
-
-			err = logcfg_selector_get_name(selector, &name);
-			logcfg_assert_intern(!err);
-
-			line = clui_table_new_line(table, NULL);
-			if (!line) {
-				err = -errno;
-				goto err;
-			}
-
-			err = clui_table_line_set_hex64(
-				line,
-				LOGCFG_CLUI_SELECTOR_ID_COL,
-				logcfg_selector_get_id(selector));
-			if (err)
-				goto err;
-
-			err = clui_table_line_set_str(
-				line,
-				LOGCFG_CLUI_SELECTOR_NAME_COL,
-				stroll_lvstr_cstr(name));
-			if (err)
-				goto err;
-		}
-
-		err = dmod_const_iter_error(iter);
-		if (err)
-			goto err;
-
-		clui_table_sort(table, LOGCFG_CLUI_SELECTOR_NAME_COL);
-		dmod_const_iter_destroy(iter);
-
-		tbl->loaded = true;
-
-		return 0;
-
-err:
-		dmod_const_iter_destroy(iter);
-
-		return err;
+	xact = logcfg_clui_begin_xact(parser);
+	if (!xact) {
+		err = -errno;
+		goto err;
 	}
 
+	iter = logcfg_selector_iter(tbl->map, xact);
+	if (!iter) {
+		err = -errno;
+		clui_err(parser,
+		         "failed to create message selectors iterator: "
+		         "%s (%d).\n",
+		         dmod_mapper_strerror((struct dmod_mapper *)tbl->map,
+		                              err),
+		         err);
+		goto abort;
+	}
+
+	logcfg_selector_iter_foreach(iter, selector) {
+		struct libscols_line *      line;
+		const struct stroll_lvstr * name;
+
+		err = logcfg_selector_get_name(selector, &name);
+		logcfg_assert_intern(!err);
+
+		line = clui_table_new_line(table, NULL);
+		if (!line) {
+			err = -errno;
+			goto destroy;
+		}
+
+		err = clui_table_line_set_hex64(
+			line,
+			LOGCFG_CLUI_SELECTOR_ID_COL,
+			logcfg_selector_get_id(selector));
+		if (err)
+			goto destroy;
+
+		err = clui_table_line_set_str(
+			line,
+			LOGCFG_CLUI_SELECTOR_NAME_COL,
+			stroll_lvstr_cstr(name));
+		if (err)
+			goto destroy;
+	}
+
+	err = dmod_iter_error(iter);
+	if (err) {
+		clui_err(parser,
+		         "failed to iterate over message selectors: "
+		         "%s (%d).\n",
+		         dmod_mapper_strerror((struct dmod_mapper *)tbl->map,
+		                              err),
+		         err);
+		goto abort;
+	}
+
+	dmod_iter_destroy(iter);
+
+	err = logcfg_clui_abort_xact(xact, 0, parser);
+	if (err)
+		return err;
+
+	clui_table_sort(table, LOGCFG_CLUI_SELECTOR_NAME_COL);
+
 	return 0;
+
+destroy:
+	dmod_iter_destroy(iter);
+abort:
+	err = logcfg_clui_abort_xact(xact, err, parser);
+
+	return err;
 }
 
 static int
 logcfg_clui_selector_table_init(struct logcfg_clui_selector_table * table,
-                                struct logcfg_session *         session)
+                                struct logcfg_session *             session)
 
 {
 	logcfg_assert_intern(table);
@@ -138,7 +152,6 @@ logcfg_clui_selector_table_init(struct logcfg_clui_selector_table * table,
 	if (err)
 		return err;
 
-	table->loaded = false;
 	table->map = logcfg_session_get_mapper(session, selector);
 	logcfg_assert_intern(table->map);
 
@@ -162,29 +175,22 @@ static int
 logcfg_clui_selector_show(const struct logcfg_clui_ctx * ctx __unused,
                           const struct clui_parser *     parser)
 {
-	int          ret;
-	const char * msg = NULL;
-
-	ret = logcfg_clui_begin_xact(parser);
-	if (ret)
+	err = clui_table_load(&logcfg_clui_selector_table_view.clui,
+	                      parser,
+	                      NULL);
+	if (err)
 		goto err;
 
-	ret = clui_table_load(&logcfg_clui_selector_table_view.clui, xact);
-
-	ret = logcfg_clui_end_xact(parser, ret);
-	if (ret)
-		goto err;
-
-	ret = clui_table_display(&logcfg_clui_selector_table_view.clui);
-	if (ret)
+	err = clui_table_display(&logcfg_clui_selector_table_view.clui, parser);
+	if (err)
 		goto err;
 
 	return 0;
 
 err:
-	clui_err(parser, "failed to show selectors.\n");
+	clui_err(parser, "failed to show message selectors (%d).\n", err);
 
-	return ret;
+	return -1;
 }
 
 static int
@@ -215,7 +221,7 @@ logcfg_clui_parse_selector(const struct clui_cmd * cmd,
 help:
 	clui_help_cmd(cmd, parser, stderr);
 
-	return -EINVAL;
+	return -1;
 }
 
 static char **

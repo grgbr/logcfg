@@ -34,7 +34,9 @@ logcfg_clui_rule_update(struct clui_table * table)
 #endif
 
 static int
-logcfg_clui_rule_table_load(struct clui_table * table, void * data __unused)
+logcfg_clui_rule_table_load(struct clui_table *        table,
+                            const struct clui_parser * parser,
+                            void *                     data __unused)
 {
 	struct logcfg_clui_rule_table * tbl = (struct logcfg_clui_rule_table *)
 	                                      table;
@@ -47,8 +49,17 @@ logcfg_clui_rule_table_load(struct clui_table * table, void * data __unused)
 		clui_table_clear(table);
 
 		iter = logcfg_rule_iter(tbl->map);
-		if (!iter)
-			return -errno;
+		if (!iter) {
+			err = -errno;
+			clui_err(parser,
+			         "failed to create matching rules iterator: "
+			         "%s (%d).\n",
+			         dmod_mapper_strerror((struct dmod_mapper *)
+			                              tbl->map,
+			                              err),
+			         err);
+			return err;
+		}
 
 		logcfg_rule_iter_foreach(iter, rule) {
 			struct libscols_line * line;
@@ -82,11 +93,20 @@ logcfg_clui_rule_table_load(struct clui_table * table, void * data __unused)
 		}
 
 		err = dmod_const_iter_error(iter);
-		if (err)
+		if (err) {
+			clui_err(parser,
+			         "failed to iterate over matching rules: "
+			         "%s (%d).\n",
+			         dmod_mapper_strerror((struct dmod_mapper *)
+			                              tbl->map,
+			                              err),
+			         err);
 			goto err;
+		}
+
+		dmod_const_iter_destroy(iter);
 
 		clui_table_sort(table, LOGCFG_CLUI_RULE_NAME_COL);
-		dmod_const_iter_destroy(iter);
 
 		tbl->loaded = true;
 
@@ -170,26 +190,25 @@ logcfg_clui_rule_table_fini(struct logcfg_clui_rule_table * table)
  ******************************************************************************/
 
 static int
-logcfg_clui_rule_display(const struct logcfg_clui_ctx * ctx __unused,
-                         const struct clui_parser *     parser)
+logcfg_clui_rule_show(const struct logcfg_clui_ctx * ctx __unused,
+                      const struct clui_parser *     parser)
 {
-	int ret;
+	int err;
 
-	ret = clui_table_load(&logcfg_clui_rule_table_view.clui, NULL);
-	if (ret) {
-		logcfg_clui_err(parser,
-		                ret,
-		                "failed to load matching rule list");
-		return ret;
-	}
+	err = clui_table_load(&logcfg_clui_rule_table_view.clui, parser, NULL);
+	if (err)
+		goto err;
 
-	ret = clui_table_display(&logcfg_clui_rule_table_view.clui);
-	if (ret)
-		logcfg_clui_err(parser,
-		                ret,
-		                "failed to display matching rule list");
+	err = clui_table_display(&logcfg_clui_rule_table_view.clui, parser);
+	if (err)
+		goto err;
 
-	return ret;
+	return 0;
+
+err:
+	clui_err(parser, "failed to show matching rules (%d).\n", err);
+
+	return -1;
 }
 
 static int
@@ -207,7 +226,7 @@ logcfg_clui_parse_rule(const struct clui_cmd * cmd,
 	}
 
 	if (!strcmp(argv[0], "show")) {
-		logcfg_clui_sched_exec(ctx, logcfg_clui_rule_display);
+		logcfg_clui_sched_exec(ctx, logcfg_clui_rule_show);
 		return 0;
 	}
 	else if (!strcmp(argv[0], "help")) {
@@ -220,7 +239,7 @@ logcfg_clui_parse_rule(const struct clui_cmd * cmd,
 help:
 	clui_help_cmd(cmd, parser, stderr);
 
-	return -EINVAL;
+	return -1;
 }
 
 static char **
@@ -244,9 +263,9 @@ logcfg_clui_rule_complete(const struct clui_cmd * cmd __unused,
 LOGCFG_CLUI_DEFINE_HELP(
 	logcfg_clui_rule_help,
 	"rule <RULE_SPEC>",
-	"Manage syslog daemon message matching rules",
+	"Manage syslog daemon matching rules",
 	"Where <RULE_SPEC>:\n"
-	"    show -- Show syslog daemon message matching rules.\n"
+	"    show -- Show syslog daemon matching rules.\n"
 	"    help -- This help message.\n")
 
 static const struct clui_cmd logcfg_clui_rule_cmd = {

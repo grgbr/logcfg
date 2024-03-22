@@ -267,19 +267,10 @@ logcfg_rule_dbase_iter_rewind(struct dmod_const_iter * iter)
 	return 0;
 }
 
-static const char *
-logcfg_rule_dbase_iter_errstr(int error)
-{
-	logcfg_assert_intern(!error);
-
-	return "success";
-}
-
 static const struct dmod_const_iter_ops logcfg_rule_dbase_iter_ops = {
 	.step   = logcfg_rule_dbase_iter_step,
 	.rewind = logcfg_rule_dbase_iter_rewind,
-	.fini   = dmod_const_iter_null_fini,
-	.errstr = logcfg_rule_dbase_iter_errstr
+	.fini   = dmod_const_iter_null_fini
 };
 
 static struct logcfg_rule_dbase_iter *
@@ -350,13 +341,22 @@ logcfg_rule_dbase_iter(void)
 	return &it->dmod;
 }
 
+static const char *
+logcfg_rule_dbase_errstr(int error)
+{
+	logcfg_assert_intern(error <= 0);
+
+	return strerror(error);
+}
+
 const struct logcfg_rule_mapper_ops logcfg_rule_dbase_mapper_ops = {
 	.dmod = {
-		.save = dmod_mapper_rdonly_save,
+		.save   = dmod_mapper_rdonly_save,
+		.errstr = logcfg_rule_dbase_errstr
 	},
-	.get_byid     = logcfg_rule_dbase_get_byid,
-	.get_byname   = logcfg_rule_dbase_get_byname,
-	.iter         = logcfg_rule_dbase_iter
+	.get_byid       = logcfg_rule_dbase_get_byid,
+	.get_byname     = logcfg_rule_dbase_get_byname,
+	.iter           = logcfg_rule_dbase_iter
 };
 
 struct logcfg_rule_mapper *
