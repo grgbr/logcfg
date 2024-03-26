@@ -64,7 +64,7 @@ main(int argc, char * const argv[])
 
 	ret = logcfg_conf_load_file(LOGCFG_SYSCONFIGDIR "/logcfgd.conf",
 	                            loaders,
-	                            array_nr(loaders));
+	                            stroll_array_nr(loaders));
 	if (ret)
 		goto destroy_dbase;
 

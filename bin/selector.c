@@ -143,7 +143,7 @@ logcfg_clui_selector_table_init(struct logcfg_clui_selector_table * table,
 	static const struct clui_table_desc  desc = {
 		.load       = logcfg_clui_selector_table_load,
 		.noheadings = 0,
-		.col_cnt    = array_nr(cols),
+		.col_cnt    = stroll_array_nr(cols),
 		.columns    = cols
 	};
 	int                                  err;
@@ -239,7 +239,8 @@ logcfg_clui_selector_complete(const struct clui_cmd * cmd __unused,
 	if (argc)
 		return NULL;
 
-	return clui_shell_build_static_matches(matches, array_nr(matches));
+	return clui_shell_build_static_matches(matches,
+	                                       stroll_array_nr(matches));
 }
 
 static void

@@ -265,7 +265,8 @@ logcfg_clui_complete_top(const struct clui_cmd * cmd __unused,
 		return NULL;
 	}
 
-	return clui_shell_build_static_matches(matches, array_nr(matches));
+	return clui_shell_build_static_matches(matches,
+	                                       stroll_array_nr(matches));
 }
 
 static const struct clui_cmd logcfg_clui_top_cmd = {
@@ -299,7 +300,7 @@ logcfg_clui_init_modules(void)
 	unsigned int m;
 	int          err = 0;
 
-	for (m = 0; m < array_nr(logcfg_clui_modules); m++) {
+	for (m = 0; m < stroll_array_nr(logcfg_clui_modules); m++) {
 		const struct logcfg_clui_module * mod = logcfg_clui_modules[m];
 
 		if (mod->init) {
@@ -320,7 +321,7 @@ err:
 static void
 logcfg_clui_fini_modules(void)
 {
-	logcfg_clui_dofini_modules(array_nr(logcfg_clui_modules));
+	logcfg_clui_dofini_modules(stroll_array_nr(logcfg_clui_modules));
 }
 
 /******************************************************************************
@@ -462,7 +463,7 @@ logcfg_clui_init(struct clui_parser * parser, int argc, char * const argv[])
 
 	err = logcfg_conf_load_file(LOGCFG_SYSCONFIGDIR "/logcfgd.conf",
 	                            loaders,
-	                            array_nr(loaders));
+	                            stroll_array_nr(loaders));
 	if (err)
 		goto destroy_dbase;
 
